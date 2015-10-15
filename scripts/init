@@ -1,0 +1,36 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: $0 <mysql|sa|sqlalchemy>" >&2
+    exit 0
+}
+
+case $1 in
+    mysql)
+        service mysql start
+
+        echo "Initializing mydb..."
+        mysql -uroot < scripts/mysql-init
+        python /scripts/mysql-default-data
+
+        mysql -uroot --init-command='USE mydb'
+        ;;
+    sa|sqlalchemy)
+        service mysql start
+
+        echo "Initializing mydb..."
+        mysql -uroot < scripts/mysql-init
+
+        PYTHONSTARTUP=/scripts/mysql-default-data ipython
+        ;;
+    tmux)
+        tmux
+        bash
+        ;;
+    bash)
+        bash
+        ;;
+    *)
+        usage
+        ;;
+esac

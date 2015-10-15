@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Date
+from sqlalchemy import Boolean
+from sqlalchemy.orm.session import sessionmaker
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.declarative.api import declarative_base
+import datetime
+
+engine = create_engine('mysql+mysqldb://root:@localhost/mydb', echo=True)
+Base = declarative_base()
+
+class Studio(Base):
+    __tablename__ = 'studio'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32), nullable=False)
+    address = Column(String(32), nullable=True)
+    good = Column(Boolean, default=True)
+
+class Artist(Base):
+    __tablename__ = 'artist'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32), nullable=False)
+    studio_id = Column(Integer, ForeignKey(Studio.id))
+
+    studio = relationship('Studio', backref=backref('artists'))
+
+class Album(Base):
+    __tablename__ = 'album'
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(32))
+    release_date = Column(Date)
+    publisher = Column(String(32))
+    media_type = Column(String(8))
+
+    artist_id = Column(Integer, ForeignKey('artist.id'))
+    # backref: so that an artist can access albums by artist.albums
+    artist = relationship('Artist', backref=backref('albums', order_by=id))
+
+    def __init__(self, title, release_date, publisher, media_type):
+        self.title = title
+        self.release_date = release_date
+        self.publisher = publisher
+        self.media_type = media_type
+
+Base.metadata.create_all(engine)
+
+def q(x):
+    return engine.execute(x)
+
+# make a session to the database
+Session = sessionmaker(bind=engine)
+s = Session()
+
+happyholic_studio = Studio(name='Happyholic')
+new_artist = Artist(name='Henry', studio=happyholic_studio)
+new_artist.albums = [Album('Read all about it', datetime.date(1988, 12, 01), 'Henry', 'CD')]
+
+more_albums = [
+    Album('Album1', datetime.date(1989, 12, 02), 'Henry', 'CD'),
+    Album('Album2', datetime.date(1990, 12, 03), 'Henry', 'CD')
+]
+
+new_artist.albums.extend(more_albums)
+
+s.add(new_artist)
+
+s.add(Artist(
+    name='Mimi',
+    studio=happyholic_studio,
+    albums=[
+        Album('MimiAlbum1', datetime.date(2001, 12, 01), 'Mimi', 'DVD'),
+        Album('MimiAlbum2', datetime.date(2002, 12, 31), 'Mimi', 'DVD')]))
+s.commit()
+
+print '''
+Models:
+    * Artist
+        * id = Column(Integer, primary_key=True)
+        * name = Column(String(32), nullable=False)
+        * address = Column(String(32), nullable=False)
+        * good = Column(Boolean, default=True)
+    * Album
+        * id = Column(Integer, primary_key=True)
+        * title = Column(String(32))
+        * release_date = Column(Date)
+        * publisher = Column(String(32))
+        * media_type = Column(String(8))
+        * artist_id = Column(Integer, ForeignKey('artist.id'))
+        * artist = relationship('Artist', backref=backref('albums', order_by=id))
+
+Sample queries:
+    * q(select([Album.title, Artist.name]).where(Album.artist_id == Artist.id)).fetchall()
+    * s.query(Artist).filter_by(name='Henry').update({'name': 'NewHenry'})
+        * session.commit()
+    * s.query(func.MAX(Album.id)).scalar()
+    * s.query(Album).update({Album.title: \
+        s.query(Artist.name).filter(Artist.id==Album.artist_id).subquery().as_scalar()},
+        synchronize_session=False)
+    * s.query(Album).filter(Album.title.op('LIKE')('%Album%'))
+    * s.query(Studio.name).filter(Studio.id==Artist.studio_id).filter(Artist.name=='Henry').one()
+        * s.query(Studio.name).filter(and_(Studio.id==Artist.studio_id, Artist.name=='Henry')).one()
+        * s.query(Studio.name).filter(and_(Studio.id==Artist.studio_id, Artist.name.op('=')('Henry'))).one()
+    * s.query(Album).group_by(Album.media_type).having(Album.release_date < datetime.datetime(2015, 12, 12)).all()
+    * s.query(Album).group_by(Album.publisher).having(func.MAX(Album.release_date)).all()
+'''
+
