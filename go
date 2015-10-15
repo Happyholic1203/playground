@@ -5,8 +5,8 @@ if [ -z $1 ]; then
     exit 0
 fi
 
-CONTAINER_NAME=sa_test
-IMAGE=sa-test:latest
+CONTAINER_NAME=playground
+IMAGE=happyholic1203/playground:latest
 SCRIPTS_DIR=`pwd`/`dirname $0`/scripts
 
 docker run -it --rm \
