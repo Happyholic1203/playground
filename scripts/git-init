@@ -1,0 +1,49 @@
+#!/bin/bash
+
+cd ~
+mkdir git-playground
+cd git-playground
+
+git init >/dev/null 2>&1
+
+commit() {
+    for commit in ${@}; do
+        file=${commit%-*}
+        msg=${commit#*-}
+        echo $msg > $file
+        git add $file && git commit -m "$msg" >/dev/null
+        git tag -a $file -m "$file" >/dev/null
+    done
+}
+
+# on master
+commit M1-M1_with_bug M2 M3-M3_with_bug M4 M5
+
+git checkout -b v1.0 M2 2>/dev/null
+commit m1_1 m1_2 m1_3
+
+git checkout -b fix-M1 m1_2 2>/dev/null
+echo M1_with_bug_fixed > M1
+git add M1 2>/dev/null 2>&1
+commit fM1
+
+git checkout -b feature-a M2 2>/dev/null
+commit a1 a2 a3
+
+git checkout -b feature-b a1 2>/dev/null
+commit b1 b2 b3
+
+git checkout -b fix-M3 M3 2>/dev/null
+echo M3_with_bug_fixed > M3
+git add M3 2>/dev/null 2>&1
+commit fM3
+
+git checkout -b v2.0 M4 2>/dev/null
+commit m2_1
+git merge fM3 -m 'm2_2' >/dev/null
+git tag -a m2_2 -m m2_2 >/dev/null
+
+git checkout -b feature-c M5 2>/dev/null
+commit c3 c4
+
+git checkout master >/dev/null 2>&1

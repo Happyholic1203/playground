@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Date
-from sqlalchemy import Boolean
+from sqlalchemy import Boolean, event, DDL
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative.api import declarative_base
@@ -39,11 +39,23 @@ class Album(Base):
     # backref: so that an artist can access albums by artist.albums
     artist = relationship('Artist', backref=backref('albums', order_by=id))
 
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_row_format': 'COMPRESSED',
+        'mysql_key_block_size': '16'
+    }
+
     def __init__(self, title, release_date, publisher, media_type):
         self.title = title
         self.release_date = release_date
         self.publisher = publisher
         self.media_type = media_type
+
+# trigger to be created after the table is built (metadata.create_all)
+# event.listen(
+#     Album.__table__,
+#     'after_create',
+#     DDL("CREATE TRIGGER sum_album BEFORE INSERT ON album FOR EACH ROW BEGIN SET NEW.title = 'hooked'; END;").execute_if(dialect='mysql'))
 
 Base.metadata.create_all(engine)
 
@@ -75,13 +87,14 @@ s.add(Artist(
         Album('MimiAlbum2', datetime.date(2002, 12, 31), 'Mimi', 'DVD')]))
 s.commit()
 
-print '''
+def usage():
+    print '''
 Models:
     * Artist
         * id = Column(Integer, primary_key=True)
         * name = Column(String(32), nullable=False)
-        * address = Column(String(32), nullable=False)
-        * good = Column(Boolean, default=True)
+        * studio_id = Column(Integer, ForeignKey(Studio.id))
+        * studio = relationship('Studio', backref=backref('artists'))
     * Album
         * id = Column(Integer, primary_key=True)
         * title = Column(String(32))
@@ -90,6 +103,11 @@ Models:
         * media_type = Column(String(8))
         * artist_id = Column(Integer, ForeignKey('artist.id'))
         * artist = relationship('Artist', backref=backref('albums', order_by=id))
+    * Studio
+        * id = Column(Integer, primary_key=True) 
+        * name = Column(String(32), nullable=False)
+        * address = Column(String(32), nullable=False)
+        * good = Column(Boolean, default=True)
 
 Sample queries:
     * q(select([Album.title, Artist.name]).where(Album.artist_id == Artist.id)).fetchall()

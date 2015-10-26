@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo '+----------  Welcome to *Git Playground* ----------+'
+echo '| [Author] Yu-Cheng (Henry) Huang                  |'
+echo '| [Contact] Happyholic1203@gmail.com               |'
+echo '| [Synopsis] Learn Git by messing with it          |'
+echo '| [Help] `vim ~/README.md`                         |'
+echo '+--------------------------------------------------+'
+echo '| [Useful Commands]                                |'
+echo '|    * ohshit: resets the git repository           |'
+echo '|    * ohhelp: alias to `vim ~/README.md`          |'
+echo '+--------------------------------------------------+'
+echo '|               Happy gitting!!                    |'
+echo '+--------------------------------------------------+'

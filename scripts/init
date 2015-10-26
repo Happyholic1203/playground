@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage() {
-    echo "Usage: $0 <mysql|sa|sqlalchemy>" >&2
+    echo "Usage: $0 <mysql|sa|sqlalchemy|git|tmux|bash>" >&2
     exit 0
 }
 
@@ -22,6 +22,14 @@ case $1 in
         mysql -uroot < scripts/mysql-init
 
         PYTHONSTARTUP=/scripts/mysql-default-data ipython
+        ;;
+    git)
+        bash scripts/git-init
+        echo "alias ohshit='cd ~ && rm -rf ~/git-playground && bash /scripts/git-init && cd ~/git-playground'" >> ~/.aliases
+        echo "alias ohhelp='cat ~/README.md'" >> ~/.aliases
+        echo "bash /scripts/git-banner" >> ~/.bashrc
+        cd ~/git-playground
+        tmux
         ;;
     tmux)
         tmux
