@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z $1 ]; then
-    echo "Usage: $0 <mysql|sa|sqlalchemy|git|tmux|bash>" >&2
+    echo "Usage: $0 <mysql|sa|sqlalchemy|git|tmux|bash|mq>" >&2
     exit 0
 fi
 

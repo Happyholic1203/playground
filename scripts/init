@@ -38,6 +38,10 @@ case $1 in
     bash)
         bash
         ;;
+    mq)
+        service rabbitmq-server start
+        PYTHONSTARTUP=/scripts/rabbitmq-init ipython
+        ;;
     *)
         usage
         ;;
