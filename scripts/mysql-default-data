@@ -25,6 +25,7 @@ class Artist(Base):
     studio_id = Column(Integer, ForeignKey(Studio.id))
 
     studio = relationship('Studio', backref=backref('artists'))
+    dynamic_albums = relationship('Album', order_by='desc(Album.release_date)', lazy='dynamic')
 
 class Album(Base):
     __tablename__ = 'album'
@@ -95,6 +96,8 @@ Models:
         * name = Column(String(32), nullable=False)
         * studio_id = Column(Integer, ForeignKey(Studio.id))
         * studio = relationship('Studio', backref=backref('artists'))
+        * dynamic_albums = relationship('Album', order_by='desc(Album.release_date)', lazy='dynamic')
+            * Use it like: `artist_instance.dynamic_albums.limit(5)`
     * Album
         * id = Column(Integer, primary_key=True)
         * title = Column(String(32))

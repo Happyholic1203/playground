@@ -98,3 +98,15 @@ Rebase is *recreating* your work on a certain branch onto another.
 * We want `feature-b` in the next 3.0 release
     * `git rebase --onto master feature-a feature-b`
     * `git checkout master && git merge feature-b`
+
+## Squashing Commits
+* `rebase -i HEAD~3`
+    * pick HEAD~2
+    * *squash* HEAD~1
+    * *squash* HEAD
+    * This will squash the last three commits into 1
+    * You can modify the commit message
+
+## Changing a Specific Commit
+* `git rebase -i <commit_id>^`
+    * rebase on the previous one
